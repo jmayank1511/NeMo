@@ -26,10 +26,15 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 import soundfile as sf
 import torch
-import wandb
+try:
+    import wandb
+except ImportError:
+    from lightning.pytorch.loggers import TensorBoardLogger
+else:
+    from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
+from hydra.utils import instantiate
 from lhotse.serialization import load_yaml
 from lightning.pytorch import Trainer
-from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 from omegaconf import DictConfig, ListConfig, OmegaConf, open_dict
 from torch import nn
 from nemo.collections.common.data.lhotse import get_lhotse_dataloader_from_config
