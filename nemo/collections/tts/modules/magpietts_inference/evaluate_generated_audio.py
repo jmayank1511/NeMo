@@ -18,6 +18,8 @@ import argparse
 import json
 import os
 import pprint
+import re
+import string
 import tempfile
 import time
 from collections import Counter
@@ -149,6 +151,34 @@ def read_manifest(manifest_path):
             records.append(json.loads(line))
     return records
 
+
+def process_text(input_text):
+    # Remove Arabic tashkeel (diacritics/harakat)
+    input_text = re.sub(r'[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E4\u06E7\u06E8\u06EA-\u06ED]', '', input_text)
+    # Remove Arabic punctuation
+    input_text = re.sub(r'[،؟؛«»٪٫٬]', '', input_text)
+    # Remove Hindi-specific punctuation (danda, double danda)
+    input_text = re.sub(r'[।॥॰]', '', input_text)
+    # Remove Mandarin-specific punctuation
+    input_text = re.sub(r'[，。！？；：""''（）【】《》〈〉「」『』、…·～—–\u3000]', '', input_text)
+    # Remove Japanese-specific punctuation
+    input_text = re.sub(r'[。、！？「」『』（）【】〔〕・…‥〜ー\u3000\u30FB]', '', input_text)
+
+    # Convert text to lowercase
+    lower_case_text = input_text.lower()
+
+    # Remove commas from text
+    no_comma_text = lower_case_text.replace(",", "")
+
+    # Replace "-" with spaces
+    no_dash_text = no_comma_text.replace("-", " ")
+
+    # Replace double spaces with single space
+    single_space_text = " ".join(no_dash_text.split())
+
+    single_space_text = single_space_text.translate(str.maketrans('', '', string.punctuation))
+
+    return single_space_text
 
 def transcribe_with_nemo_asr_batched(asr_model, audio_paths, batch_size=8, label=""):
     """Transcribe multiple audio files with a NeMo ASR model in batches. Returns list of transcriptions (one per path)."""
