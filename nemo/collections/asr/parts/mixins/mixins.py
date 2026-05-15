@@ -592,6 +592,11 @@ class ASRModuleMixin(ASRAdapterModelMixin):
         if update_config:
             with open_dict(self.cfg):
                 self.cfg.encoder.subsampling_conv_chunking_factor = subsampling_conv_chunking_factor
+    
+    def _apply_prompt_to_encoded(self, encoded: Tensor) -> Tensor:
+        """Hook for prompt-conditioned subclasses to inject a language prompt
+        into the encoder output. Default: no-op."""
+        return encoded
 
     def _apply_prompt_to_encoded(self, encoded: Tensor) -> Tensor:
         """Hook for prompt-conditioned subclasses to inject a language prompt
