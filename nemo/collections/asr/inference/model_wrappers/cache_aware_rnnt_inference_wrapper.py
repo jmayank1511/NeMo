@@ -124,21 +124,6 @@ class CacheAwareRNNTInferenceWrapper(CacheAwareASRInferenceWrapper):
             cache_last_channel_len=cache_last_channel_len,
         )
 
-        if prompt_vectors is not None and getattr(self.asr_model, 'concat', False):
-            # Mirror model.forward()'s post-encoder prompt fusion for cache-aware streaming.
-            # cache_aware_stream_step bypasses model.forward(), so concat + prompt_kernel must be applied here.
-            encoded = encoded.transpose(1, 2)  # [B, D, T] -> [B, T, D]
-            time_steps = encoded.shape[1]
-            if prompt_vectors.dim() == 2:
-                prompt_vectors = prompt_vectors.unsqueeze(1).expand(-1, time_steps, -1)
-            elif prompt_vectors.shape[1] > time_steps:
-                prompt_vectors = prompt_vectors[:, :time_steps, :]
-            out_dtype = encoded.dtype
-            encoded = self.asr_model.prompt_kernel(
-                torch.cat([encoded, prompt_vectors.to(encoded.dtype)], dim=-1)
-            ).to(out_dtype)
-            encoded = encoded.transpose(1, 2)  # [B, T, D] -> [B, D, T]
-
         if drop_left_context:
             # drop left context
             encoded = encoded[:, :, drop_left_context:]
@@ -188,8 +173,33 @@ class CacheAwareRNNTInferenceWrapper(CacheAwareASRInferenceWrapper):
             valid_out_len=valid_out_len,
         )
 
+        if prompt_vectors is not None and getattr(self.asr_model, 'concat', False):
+            # Mirror model.forward()'s post-encoder prompt fusion for cache-aware streaming.
+            # cache_aware_stream_step bypasses model.forward(), so concat + prompt_kernel must be applied here.
+            encoded = encoded.transpose(1, 2)  # [B, D, T] -> [B, T, D]
+            time_steps = encoded.shape[1]
+            if prompt_vectors.dim() == 2:
+                prompt_vectors = prompt_vectors.unsqueeze(1).expand(-1, time_steps, -1)
+            elif prompt_vectors.shape[1] > time_steps:
+                prompt_vectors = prompt_vectors[:, :time_steps, :]
+            out_dtype = encoded.dtype
+            encoded = self.asr_model.prompt_kernel(
+                torch.cat([encoded, prompt_vectors.to(encoded.dtype)], dim=-1)
+            ).to(out_dtype)
+            encoded = encoded.transpose(1, 2)  # [B, T, D] -> [B, D, T]
+
+        # return_text=False skips decode_hypothesis (BPE detokenize), which is wasted work
+        # in the Riva niva pipeline -- niva ships raw y_sequence / timestamp / score over
+        # DLPack and the C++ rnnt_postprocessor.cc does detokenization on the deltas only.
+        # Calling decode_hypothesis here would also re-detokenize the *full* accumulated
+        # transcript every chunk because partial_hypotheses merges the new tokens into the
+        # carried-over y_sequence.
         best_hyp = self.asr_model.decoding.rnnt_decoder_predictions_tensor(
-            encoded, encoded_len, return_hypotheses=True, partial_hypotheses=previous_hypotheses
+            encoded,
+            encoded_len,
+            return_hypotheses=True,
+            partial_hypotheses=previous_hypotheses,
+            return_text=False,
         )
         return best_hyp, new_context
 
