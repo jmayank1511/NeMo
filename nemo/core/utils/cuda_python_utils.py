@@ -213,10 +213,15 @@ def run_nvrtc(kernel_string: str, kernel_name: bytes, program_name: bytes):
     err, prog = nvrtc.nvrtcCreateProgram(str.encode(kernel_string), program_name, 0, [], [])
     assert_drv(err)
     # Compile program
-    # Not specifying --gpu-architecture will default us to a fairly low compute capability, which is a safe bet.
-    # Otherwise, there are ways to query the current device's compute capability.
-    # https://stackoverflow.com/questions/48283009/nvcc-get-device-compute-capability-in-runtime
-    opts = []
+    # Compile a device-specific cubin (SASS) for the current GPU instead of emitting PTX and
+    # relying on the driver's PTX JIT. When the container's NVRTC toolkit is newer than the host
+    # driver, the default-PTX path emits a PTX ISA version the driver cannot load, failing with
+    # CUDA_ERROR_UNSUPPORTED_PTX_VERSION (e.g. NVRTC 13.3 -> PTX 9.3 on a CUDA 13.1 driver,
+    # sm_103/GB300). Targeting sm_<cc> and loading the cubin bypasses the driver PTX JIT entirely.
+    import torch
+
+    major, minor = torch.cuda.get_device_capability()
+    opts = [bytes(f"--gpu-architecture=sm_{major}{minor}", "ascii")]
     (err,) = nvrtc.nvrtcCompileProgram(prog, len(opts), opts)
     assert_drv(err)
     err, size = nvrtc.nvrtcGetProgramLogSize(prog)
@@ -225,15 +230,15 @@ def run_nvrtc(kernel_string: str, kernel_name: bytes, program_name: bytes):
     (err,) = nvrtc.nvrtcGetProgramLog(prog, buf)
     assert_drv(err)
 
-    # Get PTX from compilation
-    err, ptxSize = nvrtc.nvrtcGetPTXSize(prog)
+    # Get cubin from compilation
+    err, cubinSize = nvrtc.nvrtcGetCUBINSize(prog)
     assert_drv(err)
-    ptx = b" " * ptxSize
-    (err,) = nvrtc.nvrtcGetPTX(prog, ptx)
+    cubin = b" " * cubinSize
+    (err,) = nvrtc.nvrtcGetCUBIN(prog, cubin)
     assert_drv(err)
 
-    ptx = np.char.array(ptx)
-    err, module = cuda.cuModuleLoadData(ptx.ctypes.data)
+    cubin = np.char.array(cubin)
+    err, module = cuda.cuModuleLoadData(cubin.ctypes.data)
     assert_drv(err)
     err, kernel = cuda.cuModuleGetFunction(module, kernel_name)
     assert_drv(err)
