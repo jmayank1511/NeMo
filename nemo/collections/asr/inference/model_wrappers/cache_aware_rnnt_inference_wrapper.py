@@ -192,12 +192,12 @@ class CacheAwareRNNTInferenceWrapper(CacheAwareASRInferenceWrapper):
         # in the Riva niva pipeline -- niva ships raw y_sequence / timestamp / score over
         # DLPack and the C++ rnnt_postprocessor.cc does detokenization on the deltas only.
         #
-        # _accumulate_partial_hypothesis=False on the underlying greedy decoder skips the
-        # per-row Hypothesis.merge_ (torch.cat-on-CPU storm) inside
-        # _greedy_decode_blank_as_pad_loop_labels. Niva does its own delta extraction in
-        # get_intermediate_outputs_cache_aware, so the accumulated y_sequence/timestamp on
-        # partial_hypotheses are never read python-side. Returned hyp.y_sequence is then
-        # only this chunk's tokens; downstream niva must treat it as the delta.
+        # _accumulate_partial_hypothesis is left True here so that NeMo's default
+        # cumulative behavior is preserved for callers that read the accumulated transcript.
+        # When the niva cpp pipeline is active, _configure_hypothesis_accumulation() wraps
+        # rnnt_decoder_predictions_tensor with _force_delta_path which sets it to False
+        # right before the actual decoding call, enabling the per-row Hypothesis.merge_ skip
+        # fast path in _greedy_decode_blank_as_pad_loop_labels.
         greedy = getattr(self.asr_model.decoding, "decoding", None)
         prev_accumulate = None
         if greedy is not None:
