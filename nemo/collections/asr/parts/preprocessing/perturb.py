@@ -41,7 +41,10 @@ import subprocess
 from tempfile import NamedTemporaryFile
 from typing import List, Optional, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import soundfile as sf
 from scipy import signal
@@ -58,9 +61,7 @@ try:
 
     from nemo.utils import webdataset as wds
 
-except ModuleNotFoundError:
-    from nemo.utils.exceptions import LightningNotInstalledException
-
+except (ModuleNotFoundError, ImportError):
     HAVE_OMEGACONG_WEBDATASET = False
 
 

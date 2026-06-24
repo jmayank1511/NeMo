@@ -21,7 +21,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
 import torch
-from kaldialign import edit_distance
+try:
+    from kaldialign import edit_distance
+except ImportError:
+    def edit_distance(*args, **kwargs):
+        raise ImportError("kaldialign required")
 from omegaconf import DictConfig
 
 from nemo.collections.asr.parts.utils.wfst_utils import TW_BREAK, kaldifst_importer

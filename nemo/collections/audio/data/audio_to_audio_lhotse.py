@@ -15,12 +15,23 @@ import os
 
 import numpy as np
 import torch
-from lhotse import AudioSource, CutSet, Recording
-from lhotse.array import Array
-from lhotse.audio import info
-from lhotse.cut import MixedCut
-from lhotse.dataset.collation import collate_audio, collate_custom_field
-from lhotse.serialization import load_jsonl
+try:
+    from lhotse import AudioSource, CutSet, Recording
+    from lhotse.array import Array
+    from lhotse.audio import info
+    from lhotse.cut import MixedCut
+    from lhotse.dataset.collation import collate_audio, collate_custom_field
+    from lhotse.serialization import load_jsonl
+except ImportError:
+    class AudioSource: pass
+    class CutSet: pass
+    class Recording: pass
+    class Array: pass
+    class MixedCut: pass
+    def collate_audio(*a, **kw): raise ImportError("lhotse required")
+    def collate_custom_field(*a, **kw): raise ImportError("lhotse required")
+    def load_jsonl(*a, **kw): raise ImportError("lhotse required")
+    def info(*a, **kw): raise ImportError("lhotse required")
 
 from nemo.collections.common.parts.preprocessing.manifest import get_full_path
 

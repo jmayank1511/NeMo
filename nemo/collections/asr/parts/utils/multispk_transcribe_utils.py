@@ -23,7 +23,10 @@ from functools import wraps
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch
-from lhotse.dataset.collation import collate_matrices
+try:
+        from lhotse.dataset.collation import collate_matrices
+except ImportError:
+    pass
 from omegaconf import DictConfig
 
 from nemo.collections.asr.data.audio_to_diar_label import extract_frame_info_from_rttm, get_frame_targets_from_rttm

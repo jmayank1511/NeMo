@@ -18,10 +18,13 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 import torch.utils.data
-from lhotse import CutSet, Seconds, compute_num_frames
-from lhotse.cut import Cut
-from lhotse.dataset.collation import collate_audio, collate_vectors
-from lhotse.utils import ifnone
+try:
+    from lhotse import CutSet, Seconds, compute_num_frames
+    from lhotse.cut import Cut
+    from lhotse.dataset.collation import collate_audio, collate_vectors
+    from lhotse.utils import ifnone
+except ImportError:
+    pass
 
 from nemo.collections.common.tokenizers import TokenizerSpec
 from nemo.collections.speechlm2.data.utils import get_pad_id

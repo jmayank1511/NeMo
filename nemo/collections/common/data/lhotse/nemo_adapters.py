@@ -28,15 +28,22 @@ try:
     HAVE_PYARROW = True
 except ImportError:
     HAVE_PYARROW = False
-import soundfile
-from cytoolz import groupby
-from lhotse import AudioSource, MonoCut, Recording, SupervisionSegment
-from lhotse.audio.backend import LibsndfileBackend
-from lhotse.cut import Cut
-from lhotse.dataset.dataloading import resolve_seed
-from lhotse.lazy import LazyIteratorChain, LazyJsonlIterator
-from lhotse.serialization import open_best
-from lhotse.utils import compute_num_samples, ifnone
+try:
+    import soundfile
+    from cytoolz import groupby
+    from lhotse import AudioSource, MonoCut, Recording, SupervisionSegment
+    from lhotse.audio.backend import LibsndfileBackend
+    from lhotse.cut import Cut
+    from lhotse.dataset.dataloading import resolve_seed
+    from lhotse.lazy import LazyIteratorChain, LazyJsonlIterator
+    from lhotse.serialization import open_best
+    from lhotse.utils import compute_num_samples, ifnone
+except ImportError:
+    class Cut: pass
+    class MonoCut: pass
+    class Recording: pass
+    class AudioSource: pass
+    class SupervisionSegment: pass
 
 from nemo.collections.common.parts.preprocessing.manifest import get_full_path
 from nemo.utils import logging

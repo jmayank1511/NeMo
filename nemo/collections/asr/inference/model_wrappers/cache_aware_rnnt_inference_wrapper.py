@@ -134,6 +134,10 @@ class CacheAwareRNNTInferenceWrapper(CacheAwareASRInferenceWrapper):
             encoded = encoded[:, :, :valid_out_len]
             encoded_len = torch.ones_like(encoded_len) * valid_out_len
 
+        # TRT-based encoders may return float32 regardless of model dtype; cast to match
+        # model parameters so the joint's linear layer sees a consistent dtype.
+        encoded = encoded.to(self.cast_dtype)
+
         return encoded, encoded_len, new_context
 
     def execute_step(

@@ -20,7 +20,10 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import torch
 from tqdm import tqdm

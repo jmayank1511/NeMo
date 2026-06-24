@@ -22,7 +22,12 @@ from typing import Any, Dict, List, Optional, Union
 
 import numpy as np
 import torch
-from lhotse.dataset import AudioSamples
+try:
+    from lhotse.dataset import AudioSamples
+except ImportError:
+    class AudioSamples:
+        def __init__(self, **kw): pass
+        def __call__(self, *a, **kw): raise ImportError("lhotse required")
 from omegaconf import DictConfig, ListConfig, open_dict
 from torch import Tensor
 

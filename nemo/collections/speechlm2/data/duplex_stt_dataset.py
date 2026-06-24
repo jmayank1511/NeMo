@@ -16,10 +16,13 @@ import re
 
 import torch
 import torch.utils.data
-from lhotse import CutSet, MonoCut, Recording, Seconds, SupervisionSegment, compute_num_frames
-from lhotse.cut import Cut
-from lhotse.dataset.collation import collate_audio, collate_vectors
-from lhotse.utils import ifnone
+try:
+    from lhotse import CutSet, MonoCut, Recording, Seconds, SupervisionSegment, compute_num_frames
+    from lhotse.cut import Cut
+    from lhotse.dataset.collation import collate_audio, collate_vectors
+    from lhotse.utils import ifnone
+except ImportError:
+    pass
 
 from nemo.collections.common.data.lhotse.text_adapters import Formattable
 from nemo.collections.common.tokenizers import TokenizerSpec

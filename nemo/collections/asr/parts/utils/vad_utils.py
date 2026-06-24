@@ -24,12 +24,25 @@ from math import ceil, floor
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    class _PandasStub:
+        DataFrame = object
+        Series = object
+        def __getattr__(self, name): return object
+    pd = _PandasStub()
 import torch
 import yaml
-from lhotse import SupervisionSegment
+try:
+    from lhotse import SupervisionSegment
+except ImportError:
+    class SupervisionSegment: pass
 from omegaconf import DictConfig, OmegaConf
 from sklearn.metrics import roc_auc_score
 from sklearn.model_selection import ParameterGrid

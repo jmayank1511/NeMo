@@ -35,7 +35,10 @@
 import math
 import random
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import torch
 import torch.nn as nn

@@ -18,7 +18,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Literal, Mapping, Optional, Union
 
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    class _PandasStub:
+        DataFrame = object
+        Series = object
+        def __getattr__(self, name): return object
+    pd = _PandasStub()
 from lightning.pytorch.callbacks import Checkpoint
 from lightning.pytorch.loggers import Logger
 from lightning.pytorch.utilities.parsing import AttributeDict

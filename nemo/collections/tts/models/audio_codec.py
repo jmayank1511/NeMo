@@ -24,11 +24,18 @@ from lightning.pytorch import Trainer
 from omegaconf import DictConfig, OmegaConf
 
 from nemo.collections.audio.parts.utils.transforms import Resample
-from nemo.collections.common.data.lhotse import get_lhotse_dataloader_from_config
-from nemo.collections.common.data.lhotse.dataloader import (
-    LhotseDataLoadingConfig,
-    make_structured_with_schema_warnings,
-)
+try:
+    from nemo.collections.common.data.lhotse import get_lhotse_dataloader_from_config
+    from nemo.collections.common.data.lhotse.dataloader import (
+        LhotseDataLoadingConfig,
+        make_structured_with_schema_warnings,
+    )
+except ImportError:
+    def get_lhotse_dataloader_from_config(*args, **kwargs):
+        raise ImportError("lhotse required")
+    LhotseDataLoadingConfig = None
+    def make_structured_with_schema_warnings(*args, **kwargs):
+        raise ImportError("lhotse required")
 from nemo.collections.tts.data.audio_codec_dataset_lhotse import AudioCodecLhotseDataset
 from nemo.collections.tts.data.vocoder_dataset import VocoderDataset
 from nemo.collections.tts.losses.audio_codec_loss import (

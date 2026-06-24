@@ -19,7 +19,11 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import torch
-from kaldialign import align
+try:
+    from kaldialign import align
+except ImportError:
+    def align(*args, **kwargs):
+        raise ImportError("kaldialign required")
 from omegaconf import open_dict
 
 from nemo.collections.asr.models import ASRModel, EncDecRNNTModel

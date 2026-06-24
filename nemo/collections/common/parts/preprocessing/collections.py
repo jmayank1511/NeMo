@@ -19,7 +19,10 @@ from itertools import combinations
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union
 
 import numpy as np
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 from nemo.collections.common.parts.preprocessing import manifest, parsers
 from nemo.collections.common.parts.preprocessing.manifest import get_full_path

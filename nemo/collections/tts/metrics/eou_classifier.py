@@ -51,7 +51,10 @@ except ImportError:
     from strenum import StrEnum
 from typing import Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import torch
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor

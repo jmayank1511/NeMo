@@ -16,7 +16,11 @@ import os
 from typing import List, Union
 
 import numpy as np
-from kaldialign import align
+try:
+    from kaldialign import align
+except ImportError:
+    def align(*args, **kwargs):
+        raise ImportError("kaldialign is required for context biasing. Install it with: pip install kaldialign")
 
 from nemo.collections.asr.parts.context_biasing.ctc_based_word_spotter import WSHyp
 from nemo.collections.asr.parts.utils import rnnt_utils

@@ -15,7 +15,10 @@
 import json
 import os
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 from omegaconf import OmegaConf
 
 from nemo.collections.asr.inference.streaming.framing.request_options import ASRRequestOptions

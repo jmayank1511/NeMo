@@ -15,8 +15,11 @@
 from typing import Dict, Optional, Tuple
 
 import torch.utils.data
-from lhotse.dataset import AudioSamples
-from lhotse.dataset.collation import collate_matrices
+try:
+    from lhotse.dataset import AudioSamples
+    from lhotse.dataset.collation import collate_matrices
+except ImportError:
+    pass
 
 from nemo.collections.asr.parts.utils.asr_multispeaker_utils import (
     get_hidden_length_from_sample_length,

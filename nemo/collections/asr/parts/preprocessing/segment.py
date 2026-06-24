@@ -37,7 +37,10 @@ import math
 import random
 from typing import Iterable, List, Optional, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import numpy.typing as npt
 import soundfile as sf

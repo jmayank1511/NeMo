@@ -19,7 +19,10 @@ from collections import OrderedDict as od
 from pathlib import Path
 from typing import Dict, List, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 
 from nemo.collections.asr.parts.utils.speaker_utils import (

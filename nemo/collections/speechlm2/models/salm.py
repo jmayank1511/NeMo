@@ -18,7 +18,10 @@ from pathlib import Path
 from typing import Any, Optional
 
 import torch
-from lhotse import CutSet
+try:
+        from lhotse import CutSet
+except ImportError:
+    pass
 from lightning import LightningModule
 from omegaconf import DictConfig
 from peft import PeftModel

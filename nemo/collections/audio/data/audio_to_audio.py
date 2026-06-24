@@ -19,7 +19,10 @@ from collections import OrderedDict, namedtuple
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Type, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import torch
 

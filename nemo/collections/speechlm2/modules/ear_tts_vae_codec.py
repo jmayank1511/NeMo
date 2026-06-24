@@ -18,7 +18,10 @@ from collections.abc import Callable
 from contextlib import contextmanager
 from typing import Any
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import torch
 from omegaconf import DictConfig
 from torch import Tensor, nn

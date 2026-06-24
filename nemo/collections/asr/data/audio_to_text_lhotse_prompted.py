@@ -16,10 +16,19 @@ from dataclasses import dataclass
 from typing import Optional, Union
 
 import torch.utils.data
-from lhotse import CutSet
-from lhotse.cut import MixedCut
-from lhotse.dataset import AudioSamples
-from lhotse.dataset.collation import collate_vectors
+try:
+    from lhotse import CutSet
+    from lhotse.cut import MixedCut
+    from lhotse.dataset import AudioSamples
+    from lhotse.dataset.collation import collate_vectors
+except ImportError:
+    class CutSet: pass
+    class MixedCut:
+        __dataclass_fields__ = {}
+    class AudioSamples:
+        def __init__(self, **kw): pass
+        def __call__(self, *a, **kw): raise ImportError("lhotse required")
+    def collate_vectors(*a, **kw): raise ImportError("lhotse required")
 
 from nemo.collections.common.data import apply_prompt_format_fn
 from nemo.collections.common.prompts import PromptFormatter

@@ -27,7 +27,10 @@ from functools import partial
 from pathlib import Path
 from typing import Optional, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import soundfile as sf
 import torch

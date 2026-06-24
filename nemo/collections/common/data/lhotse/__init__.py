@@ -14,18 +14,29 @@
 
 import inspect
 
-from lhotse.dataset.sampling.base import Sampler
+try:
+    from lhotse.dataset.sampling.base import Sampler
 
-from nemo.collections.common.data.lhotse.cutset import read_cutset_from_config
-from nemo.collections.common.data.lhotse.dataloader import (
-    LhotseDataLoadingConfig,
-    get_lhotse_dataloader_from_config,
-    get_lhotse_sampler_from_config,
-)
-from nemo.collections.common.data.lhotse.nemo_adapters import LazyNeMoIterator, LazyNeMoTarredIterator
-from nemo.collections.common.data.lhotse.text_adapters import (
-    NeMoMultimodalConversation,
-    NeMoSFTExample,
-    SourceTargetTextExample,
-    TextExample,
-)
+    from nemo.collections.common.data.lhotse.cutset import read_cutset_from_config
+    from nemo.collections.common.data.lhotse.dataloader import (
+        LhotseDataLoadingConfig,
+        get_lhotse_dataloader_from_config,
+        get_lhotse_sampler_from_config,
+    )
+    from nemo.collections.common.data.lhotse.nemo_adapters import LazyNeMoIterator, LazyNeMoTarredIterator
+    from nemo.collections.common.data.lhotse.text_adapters import (
+        NeMoMultimodalConversation,
+        NeMoSFTExample,
+        SourceTargetTextExample,
+        TextExample,
+    )
+except ImportError:
+
+    def get_lhotse_dataloader_from_config(*args, **kwargs):
+        raise ImportError("lhotse is required for data loading. Install it with: pip install lhotse")
+
+    def get_lhotse_sampler_from_config(*args, **kwargs):
+        raise ImportError("lhotse is required for data loading. Install it with: pip install lhotse")
+
+    def read_cutset_from_config(*args, **kwargs):
+        raise ImportError("lhotse is required for data loading. Install it with: pip install lhotse")

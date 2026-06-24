@@ -14,9 +14,16 @@
 import itertools
 from typing import Iterable, Optional
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import torch
-from kaldialign import edit_distance
+try:
+    from kaldialign import edit_distance
+except ImportError:
+    def edit_distance(*args, **kwargs):
+        raise ImportError("kaldialign required")
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
 from lightning.pytorch.utilities.combined_loader import CombinedLoader

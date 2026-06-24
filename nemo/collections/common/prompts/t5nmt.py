@@ -16,8 +16,13 @@
 from collections import defaultdict
 
 import torch
-from lhotse import MonoCut
-from lhotse.cut import Cut, MixedCut
+try:
+    from lhotse import MonoCut
+    from lhotse.cut import Cut, MixedCut
+except ImportError:
+    class Cut: pass
+    class MixedCut: pass
+    class MonoCut: pass
 
 from nemo.collections.common.data.lhotse.text_adapters import SourceTargetTextExample
 from nemo.collections.common.data.prompt_fn import registered_prompt_format_fn

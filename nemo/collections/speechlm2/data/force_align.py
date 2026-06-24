@@ -19,7 +19,10 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 import torch
-from lhotse import CutSet
+try:
+        from lhotse import CutSet
+except ImportError:
+    pass
 
 # Use NeMo's force alignment utilities instead of torchaudio
 from nemo.collections.asr.models.asr_model import ASRModel

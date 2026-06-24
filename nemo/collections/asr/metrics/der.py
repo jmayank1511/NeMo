@@ -13,7 +13,11 @@
 # limitations under the License.
 
 from typing import IO, Any, Dict, Iterable, List, Optional, Tuple
-from lhotse import SupervisionSegment
+
+try:
+    from lhotse import SupervisionSegment
+except ImportError:
+    SupervisionSegment = None
 
 from nemo.collections.asr.metrics.md_eval import (
     EPSILON,

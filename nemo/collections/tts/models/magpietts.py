@@ -33,12 +33,21 @@ except ImportError:
 else:
     from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
 from hydra.utils import instantiate
-from lhotse.serialization import load_yaml
+try:
+        from lhotse.serialization import load_yaml
+except ImportError:
+    pass
 from lightning.pytorch import Trainer
 from omegaconf import DictConfig, ListConfig, OmegaConf, open_dict
 from torch import nn
-from nemo.collections.common.data.lhotse import get_lhotse_dataloader_from_config
-from nemo.collections.tts.data.text_to_speech_dataset_lhotse import MagpieTTSLhotseDataset, setup_tokenizers
+try:
+    from nemo.collections.common.data.lhotse import get_lhotse_dataloader_from_config
+    from nemo.collections.tts.data.text_to_speech_dataset_lhotse import MagpieTTSLhotseDataset, setup_tokenizers
+except ImportError:
+    def get_lhotse_dataloader_from_config(*args, **kwargs):
+        raise ImportError("lhotse required")
+    MagpieTTSLhotseDataset = None
+    setup_tokenizers = None
 from nemo.collections.tts.losses.aligner_loss import ForwardSumLoss
 from nemo.collections.tts.losses.moe_loss import MoEAuxiliaryLoss, compute_expert_usage
 from nemo.collections.tts.models import AudioCodecModel

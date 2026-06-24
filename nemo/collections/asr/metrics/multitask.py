@@ -19,8 +19,12 @@ from typing import List, Optional
 
 import regex as re
 import torch
-from lhotse import CutSet
-from lhotse.cut import MixedCut
+try:
+    from lhotse import CutSet
+    from lhotse.cut import MixedCut
+except ImportError:
+    class CutSet: pass
+    class MixedCut: pass
 from omegaconf import DictConfig, OmegaConf
 from torch import nn
 

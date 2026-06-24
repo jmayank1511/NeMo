@@ -19,7 +19,10 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Union
 
 import einops
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import soundfile as sf
 import torch
 from lightning.pytorch import Trainer

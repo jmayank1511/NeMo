@@ -47,7 +47,11 @@ from nemo.collections.asr.parts.utils.timestamp_utils import (
     process_aed_timestamp_outputs,
 )
 from nemo.collections.common import tokenizers
-from nemo.collections.common.data.lhotse.dataloader import get_lhotse_dataloader_from_config
+try:
+    from nemo.collections.common.data.lhotse.dataloader import get_lhotse_dataloader_from_config
+except ImportError:
+    def get_lhotse_dataloader_from_config(*args, **kwargs):
+        raise ImportError("lhotse required")
 from nemo.collections.common.metrics import GlobalAverageLossMetric
 from nemo.collections.common.parts import transformer_weights_init
 from nemo.collections.common.parts.preprocessing.manifest import get_full_path

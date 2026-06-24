@@ -17,7 +17,10 @@ import os
 import re
 from typing import Optional
 
-import pandas as pd
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 from nemo.collections.common.tokenizers.char_tokenizer import TokenizerSpec
 from nemo.utils import logging

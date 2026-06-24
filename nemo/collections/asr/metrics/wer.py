@@ -16,7 +16,14 @@ from copy import deepcopy
 from typing import List, Optional, Tuple, Union
 
 import torch
-from kaldialign import edit_distance
+try:
+    from kaldialign import edit_distance
+except ImportError:
+
+    def edit_distance(*args, **kwargs):
+        raise ImportError("kaldialign is required for WER computation. Install it with: pip install kaldialign")
+
+
 from torchmetrics import Metric
 
 from nemo.collections.asr.parts.submodules.ctc_decoding import AbstractCTCDecoding

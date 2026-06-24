@@ -16,10 +16,17 @@ from __future__ import annotations
 
 from typing import Callable, Dict, List, Optional, Tuple, Union
 
-import datasets as hf_datasets
+try:
+    import datasets as hf_datasets
+    from datasets import concatenate_datasets
+    from datasets.distributed import split_dataset_by_node
+    HAVE_DATASETS = True
+except ImportError:
+    hf_datasets = None
+    concatenate_datasets = None
+    split_dataset_by_node = None
+    HAVE_DATASETS = False
 import torch
-from datasets import concatenate_datasets
-from datasets.distributed import split_dataset_by_node
 from omegaconf import DictConfig, ListConfig, open_dict
 
 from nemo.collections.asr.data.audio_to_text import _speech_collate_fn

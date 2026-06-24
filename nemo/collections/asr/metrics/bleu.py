@@ -15,8 +15,13 @@
 from typing import Literal, Optional, Sequence, TypeAlias, Union
 
 import torch
-from lhotse import CutSet
-from lhotse.cut import MixedCut
+try:
+    from lhotse import CutSet
+    from lhotse.cut import MixedCut
+except ImportError:
+    CutSet = None
+    MixedCut = None
+
 from torchmetrics.functional.text.bleu import _bleu_score_compute, _bleu_score_update
 from torchmetrics.text import SacreBLEUScore
 

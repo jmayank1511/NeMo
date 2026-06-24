@@ -15,7 +15,10 @@
 from abc import ABC, abstractmethod
 from typing import Tuple
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import torch
 

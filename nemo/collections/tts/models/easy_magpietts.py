@@ -20,9 +20,14 @@ from typing import Optional, Tuple
 import numpy as np
 import soundfile as sf
 import torch
-import wandb
+try:
+    import wandb
+    from lightning.pytorch.loggers import WandbLogger
+except ImportError:
+    wandb = None
+    WandbLogger = None
 from lightning.pytorch import Trainer
-from lightning.pytorch.loggers import TensorBoardLogger, WandbLogger
+from lightning.pytorch.loggers import TensorBoardLogger
 from omegaconf import DictConfig
 from torch import nn
 from torch.utils.data.distributed import DistributedSampler
@@ -30,8 +35,14 @@ from torch.utils.data.distributed import DistributedSampler
 import nemo.collections.asr as nemo_asr
 from nemo.collections.asr.metrics.wer import word_error_rate
 from nemo.collections.asr.parts.mixins.transcription import TranscribeConfig
-from nemo.collections.common.data.lhotse import get_lhotse_dataloader_from_config
-from nemo.collections.tts.data.text_to_speech_dataset_lhotse import MagpieTTSLhotseDataset, setup_tokenizers
+try:
+    from nemo.collections.common.data.lhotse import get_lhotse_dataloader_from_config
+    from nemo.collections.tts.data.text_to_speech_dataset_lhotse import MagpieTTSLhotseDataset, setup_tokenizers
+except ImportError:
+    def get_lhotse_dataloader_from_config(*args, **kwargs):
+        raise ImportError("lhotse required")
+    MagpieTTSLhotseDataset = None
+    setup_tokenizers = None
 from nemo.collections.tts.models.easy_magpietts_inference import EasyMagpieTTSInferenceModel, TrainingMode
 from nemo.collections.tts.modules.magpietts_modules import (
     LocalTransformerType,

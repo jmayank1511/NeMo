@@ -47,7 +47,10 @@ from collections import defaultdict
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import soundfile as sf
 import torch

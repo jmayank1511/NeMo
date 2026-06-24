@@ -24,7 +24,10 @@ from nemo.collections.common.parts.preprocessing import collections
 from nemo.core.classes import Dataset, IterableDataset
 from nemo.core.neural_types import AudioSignal, LabelsType, LengthsType, NeuralType, RegressionValuesType
 from nemo.utils import logging
-from nemo.utils import webdataset as wds
+try:
+    from nemo.utils import webdataset as wds
+except ImportError:
+    wds = None
 from nemo.utils.distributed import webdataset_split_by_workers
 
 # List of valid file formats (prioritized by order of importance)

@@ -18,8 +18,11 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from lhotse import fastcopy
-from lhotse.serialization import SequentialJsonlWriter
+try:
+    from lhotse import fastcopy
+    from lhotse.serialization import SequentialJsonlWriter
+except ImportError:
+    pass
 from lightning import LightningModule
 from omegaconf import DictConfig, open_dict
 from peft import PeftModel

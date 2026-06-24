@@ -24,14 +24,23 @@ from typing import Iterator, Literal, Optional, Sequence, Union
 
 import numpy as np
 import torch
-from lhotse import AudioSource, CutSet, Recording
-from lhotse.custom import CustomFieldMixin
-from lhotse.cut import Cut
-from lhotse.dataset import AudioSamples
-from lhotse.dataset.dataloading import resolve_seed
-from lhotse.serialization import load_jsonl, open_best
-from lhotse.shar import AudioTarWriter, JsonlShardWriter
-from lhotse.utils import Pathlike, compute_num_samples, is_valid_url
+try:
+    from lhotse import AudioSource, CutSet, Recording
+    from lhotse.custom import CustomFieldMixin
+    from lhotse.cut import Cut
+    from lhotse.dataset import AudioSamples
+    from lhotse.dataset.dataloading import resolve_seed
+    from lhotse.serialization import load_jsonl, open_best
+    from lhotse.shar import AudioTarWriter, JsonlShardWriter
+    from lhotse.utils import Pathlike, compute_num_samples, is_valid_url
+except ImportError:
+    class CustomFieldMixin: pass
+    class Cut: pass
+    class CutSet: pass
+    class AudioSource: pass
+    class Recording: pass
+    class AudioSamples: pass
+    Pathlike = str  # alias so dataclass field annotations resolve
 
 from nemo.collections.common.data.lhotse.indexed_adapters import (
     IndexedJSONLReader,

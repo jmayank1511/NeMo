@@ -15,7 +15,10 @@
 import math
 from typing import Optional
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import numpy.typing as npt
 import scipy

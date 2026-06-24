@@ -20,9 +20,12 @@ from typing import Iterable, Union
 import numpy as np
 import torch
 import torch.utils.data
-from lhotse import CutSet, fastcopy
-from lhotse.cut import MixedCut, MultiCut
-from lhotse.dataset import AudioSamples
+try:
+    from lhotse import CutSet, fastcopy
+    from lhotse.cut import MixedCut, MultiCut
+    from lhotse.dataset import AudioSamples
+except ImportError:
+    pass
 from torch.nn import CrossEntropyLoss
 from torch.nn.utils.rnn import pad_sequence
 

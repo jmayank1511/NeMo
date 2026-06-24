@@ -16,8 +16,11 @@ import random
 from typing import Dict, Optional, Tuple
 
 import torch.utils.data
-from lhotse.dataset import AudioSamples
-from lhotse.dataset.collation import collate_vectors
+try:
+    from lhotse.dataset import AudioSamples
+    from lhotse.dataset.collation import collate_vectors
+except ImportError:
+    pass
 
 from nemo.collections.asr.data.audio_to_text_lhotse import TokenizerWrapper
 from nemo.collections.asr.parts.utils.asr_multispeaker_utils import speaker_to_target

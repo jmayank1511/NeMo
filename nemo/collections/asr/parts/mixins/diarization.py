@@ -19,7 +19,10 @@ from dataclasses import dataclass
 from functools import partial
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset

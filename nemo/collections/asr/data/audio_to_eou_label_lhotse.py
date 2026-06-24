@@ -18,9 +18,12 @@ from typing import Dict, List, Optional
 
 import numpy as np
 import torch.utils.data
-from lhotse.cut import Cut, CutSet, MixedCut
-from lhotse.dataset import AudioSamples
-from lhotse.dataset.collation import collate_vectors
+try:
+    from lhotse.cut import Cut, CutSet, MixedCut
+    from lhotse.dataset import AudioSamples
+    from lhotse.dataset.collation import collate_vectors
+except ImportError:
+    pass
 from omegaconf import DictConfig, OmegaConf
 
 from nemo.collections.asr.parts.preprocessing.perturb import process_augmentations

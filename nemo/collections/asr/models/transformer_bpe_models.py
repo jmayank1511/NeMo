@@ -19,7 +19,14 @@ from typing import Any, Dict, List, Optional, Union
 
 import torch
 import torch.distributed as dist
-from kaldialign import edit_distance
+try:
+    from kaldialign import edit_distance
+except ImportError:
+
+    def edit_distance(*args, **kwargs):
+        raise ImportError("kaldialign is required for WER computation. Install it with: pip install kaldialign")
+
+
 from lightning.pytorch import Trainer
 from omegaconf import DictConfig, OmegaConf, open_dict
 from torch.utils.data import DataLoader

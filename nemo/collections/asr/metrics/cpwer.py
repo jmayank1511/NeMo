@@ -16,7 +16,11 @@ from itertools import permutations
 from typing import List, Tuple
 
 import numpy as np
-from kaldialign import edit_distance
+try:
+    from kaldialign import edit_distance
+except ImportError:
+    def edit_distance(*args, **kwargs):
+        raise ImportError("kaldialign required")
 from scipy.optimize import linear_sum_assignment as scipy_linear_sum_assignment
 
 __all__ = [

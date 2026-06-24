@@ -18,8 +18,13 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 import torch
-from lhotse import CutSet
-from lhotse.dataset.collation import collate_matrices, collate_vectors
+try:
+    from lhotse import CutSet
+    from lhotse.dataset.collation import collate_matrices, collate_vectors
+except ImportError:
+    CutSet = None
+    collate_matrices = None
+    collate_vectors = None
 from omegaconf import DictConfig, open_dict
 from transformers import AutoTokenizer, T5Tokenizer
 

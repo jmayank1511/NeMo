@@ -25,7 +25,10 @@ from omegaconf import DictConfig
 from torch import nn
 from transformers import AutoConfig, AutoModelForCausalLM
 
-from nemo.collections.tts.data.text_to_speech_dataset_lhotse import setup_tokenizers
+try:
+    from nemo.collections.tts.data.text_to_speech_dataset_lhotse import setup_tokenizers
+except ImportError:
+    setup_tokenizers = None
 from nemo.collections.tts.models import AudioCodecModel
 from nemo.collections.tts.modules import transformer_2501
 from nemo.collections.tts.modules.audio_codec_modules import VectorQuantizerIndexConverter

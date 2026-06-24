@@ -22,11 +22,20 @@ from typing import Any, Dict
 
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks.model_checkpoint import ModelCheckpoint
-from nv_one_logger.api.config import OneLoggerConfig
-from nv_one_logger.training_telemetry.api.callbacks import on_app_start
-from nv_one_logger.training_telemetry.api.config import TrainingTelemetryConfig
-from nv_one_logger.training_telemetry.api.training_telemetry_provider import TrainingTelemetryProvider
-from nv_one_logger.training_telemetry.integration.pytorch_lightning import TimeEventCallback as OneLoggerPTLCallback
+
+try:
+    from nv_one_logger.api.config import OneLoggerConfig
+    from nv_one_logger.training_telemetry.api.callbacks import on_app_start
+    from nv_one_logger.training_telemetry.api.config import TrainingTelemetryConfig
+    from nv_one_logger.training_telemetry.api.training_telemetry_provider import TrainingTelemetryProvider
+    from nv_one_logger.training_telemetry.integration.pytorch_lightning import TimeEventCallback as OneLoggerPTLCallback
+
+    HAVE_NV_ONE_LOGGER = True
+except ImportError:
+    HAVE_NV_ONE_LOGGER = False
+
+    class OneLoggerPTLCallback:  # placeholder so the class definition below doesn't fail
+        pass
 
 from nemo.lightning.base_callback import BaseCallback
 
@@ -234,6 +243,8 @@ class OneLoggerNeMoCallback(OneLoggerPTLCallback, BaseCallback):
     def __init__(self) -> None:
         if getattr(self, '_initialized', False):
             return
+        if not HAVE_NV_ONE_LOGGER:
+            return
         init_config = get_one_logger_init_config()
         one_logger_config = OneLoggerConfig(**init_config)
         TrainingTelemetryProvider.instance().with_base_config(
@@ -245,6 +256,8 @@ class OneLoggerNeMoCallback(OneLoggerPTLCallback, BaseCallback):
         on_app_start()
 
     def update_config(self, nemo_version: str, trainer: Trainer, **kwargs) -> None:
+        if not HAVE_NV_ONE_LOGGER:
+            return
         # Avoid this function being called multiple times
         if TrainingTelemetryProvider.instance().config.telemetry_config is not None:
             return

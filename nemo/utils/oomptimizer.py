@@ -18,7 +18,10 @@ from dataclasses import dataclass
 from numbers import Number
 from typing import Literal
 
-from lhotse import compute_num_samples
+try:
+        from lhotse import compute_num_samples
+except ImportError:
+    pass
 from omegaconf import OmegaConf
 
 from nemo.core.neural_types import LabelsType, NeuralType

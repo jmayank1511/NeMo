@@ -20,11 +20,27 @@ from copy import deepcopy
 from typing import Optional, Union
 
 import torch.utils.data
-from cytoolz import groupby
-from lhotse import AudioSource, Recording, SupervisionSegment, SupervisionSet
-from lhotse.cut import Cut, MixedCut, MixTrack, MonoCut
-from lhotse.lazy import LazyJsonlIterator
-from lhotse.utils import compute_num_samples, uuid4
+try:
+    from cytoolz import groupby
+except ImportError:
+    def groupby(*a, **kw): raise ImportError("cytoolz required")
+try:
+    from lhotse import AudioSource, Recording, SupervisionSegment, SupervisionSet
+    from lhotse.cut import Cut, MixedCut, MixTrack, MonoCut
+    from lhotse.lazy import LazyJsonlIterator
+    from lhotse.utils import compute_num_samples, uuid4
+except ImportError:
+    class AudioSource: pass
+    class Recording: pass
+    class SupervisionSegment: pass
+    class SupervisionSet: pass
+    class Cut: pass
+    class MixedCut: pass
+    class MixTrack: pass
+    class MonoCut: pass
+    def compute_num_samples(*a, **kw): raise ImportError("lhotse required")
+    def uuid4(): raise ImportError("lhotse required")
+    class LazyJsonlIterator: pass
 
 
 def find_first_nonzero(mat: torch.Tensor, max_cap_val=-1, thres: float = 0.5) -> torch.Tensor:

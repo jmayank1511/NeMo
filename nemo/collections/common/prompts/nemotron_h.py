@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # pylint: disable=missing-function-docstring,missing-class-docstring
-from lhotse.cut import Cut, MixedCut
+try:
+    from lhotse.cut import Cut, MixedCut
+except ImportError:
+    class Cut: pass
+    class MixedCut: pass
 
 from nemo.collections.common.data.prompt_fn import registered_prompt_format_fn
 from nemo.collections.common.prompts.formatter import Modality, PromptFormatter

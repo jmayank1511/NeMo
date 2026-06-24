@@ -17,7 +17,10 @@ import time
 from collections import Counter
 from contextlib import contextmanager
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

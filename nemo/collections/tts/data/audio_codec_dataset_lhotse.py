@@ -17,7 +17,10 @@ from typing import Dict
 
 import numpy as np
 import torch
-from lhotse import CutSet
+try:
+    from lhotse import CutSet
+except ImportError:
+    class CutSet: pass
 
 from nemo.utils import logging
 

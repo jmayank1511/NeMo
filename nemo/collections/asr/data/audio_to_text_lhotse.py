@@ -16,8 +16,11 @@ import os
 from typing import Dict, Optional, Tuple
 
 import torch.utils.data
-from lhotse.dataset import AudioSamples
-from lhotse.dataset.collation import collate_vectors
+try:
+    from lhotse.dataset import AudioSamples
+    from lhotse.dataset.collation import collate_vectors
+except ImportError:
+    pass
 
 from nemo.collections.common.tokenizers.aggregate_tokenizer import TokenizerWrapper
 from nemo.collections.common.tokenizers.tokenizer_spec import TokenizerSpec

@@ -18,7 +18,10 @@ import os
 import random
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import soundfile as sf
 from numpy.random import default_rng

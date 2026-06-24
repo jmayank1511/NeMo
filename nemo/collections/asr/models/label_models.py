@@ -19,7 +19,10 @@ from collections import Counter
 from math import ceil
 from typing import Dict, List, Optional, Union
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import soundfile as sf
 import torch

@@ -22,7 +22,10 @@ from typing import Dict, List, Tuple
 import numpy as np
 import soundfile as sf
 import torch
-from lhotse import SupervisionSegment
+try:
+    from lhotse import SupervisionSegment
+except ImportError:
+    class SupervisionSegment: pass
 from omegaconf.listconfig import ListConfig
 from tqdm import tqdm
 

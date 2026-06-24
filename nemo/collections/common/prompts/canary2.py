@@ -15,9 +15,15 @@
 # pylint: disable=C0116
 # pylint: disable=C0301
 import torch
-from lhotse import MonoCut
-from lhotse.cut import Cut, MixedCut
-from lhotse.utils import ifnone
+try:
+    from lhotse import MonoCut
+    from lhotse.cut import Cut, MixedCut
+    from lhotse.utils import ifnone
+except ImportError:
+    class Cut: pass
+    class MixedCut: pass
+    class MonoCut: pass
+    def ifnone(*a, **kw): pass
 
 from nemo.collections.common.data.prompt_fn import registered_prompt_format_fn
 from nemo.collections.common.prompts.canary import BOOL_FALSE, BOOL_TRUE, PNC_FALSE, PNC_TRUE

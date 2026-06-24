@@ -21,7 +21,10 @@ import subprocess
 import tempfile
 from typing import Optional
 
-import librosa
+try:
+    import librosa
+except ImportError:
+    librosa = None
 import numpy as np
 import soundfile as sf
 import torch

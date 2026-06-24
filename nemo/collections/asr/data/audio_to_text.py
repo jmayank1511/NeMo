@@ -33,7 +33,10 @@ from nemo.collections.common.parts.preprocessing import collections, parsers
 from nemo.core.classes import Dataset, IterableDataset
 from nemo.core.neural_types import *
 from nemo.utils import logging
-from nemo.utils import webdataset as wds
+try:
+    from nemo.utils import webdataset as wds
+except ImportError:
+    wds = None
 from nemo.utils.data_utils import DataStoreObject, datastore_object_get, is_datastore_cache_shared, is_datastore_path
 from nemo.utils.decorators import deprecated
 from nemo.utils.distributed import webdataset_split_by_workers
