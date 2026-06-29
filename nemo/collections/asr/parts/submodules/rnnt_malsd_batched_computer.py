@@ -905,7 +905,17 @@ class ModifiedALSDBatchedRNNTComputer(WithOptionalCudaGraphs, ConfidenceMethodMi
         # create decoding state for next chunk
         decoding_state = self._create_decoding_state(encoder_output_length, prev_batched_state)
 
-        return self.state.batched_hyps.clone(batch_size=current_batch_size), decoding_state
+        # The graph-owned hypothesis buffer can be exported in place when the live
+        # batch fills its storage. The caller consumes it before the next decode,
+        # and _init_decoding_state() clears it before reuse. Cross-chunk fields have
+        # already been snapshotted into decoding_state above. Avoiding clone() here
+        # removes a deep copy of every beam transcript/timestamp tensor per chunk.
+        output_hyps = (
+            self.state.batched_hyps
+            if current_batch_size == self.state.batch_size
+            else self.state.batched_hyps.clone(batch_size=current_batch_size)
+        )
+        return output_hyps, decoding_state
 
     @classmethod
     def _create_loop_body_kernel(cls):
@@ -1543,35 +1553,48 @@ class ModifiedALSDBatchedRNNTComputer(WithOptionalCudaGraphs, ConfidenceMethodMi
         batch_size = state.labels.shape[0]
         beam_size = self.beam_size
 
-        per_row_states = self.decoder.batch_split_states(state.predictor_states)
-        if len(per_row_states) != batch_size * beam_size:
-            raise AssertionError(
-                f"Expected predictor states with batch dim {batch_size * beam_size}, "
-                f"got {len(per_row_states)} per-row items"
-            )
+        # RNNT LSTM state is [layers, batch * beam, hidden]. Keep per-stream
+        # slices as views instead of creating B*K Python state objects and then
+        # stacking every K of them back together. BatchedBeamState owns the
+        # backing tensors until all stream views advance to their next state.
+        fast_lstm_state = (
+            isinstance(state.predictor_states, tuple)
+            and len(state.predictor_states) == 2
+            and all(isinstance(tensor, torch.Tensor) and tensor.ndim >= 2 for tensor in state.predictor_states)
+            and all(tensor.shape[1] == batch_size * beam_size for tensor in state.predictor_states)
+        )
+        if not fast_lstm_state:
+            per_row_states = self.decoder.batch_split_states(state.predictor_states)
+            if len(per_row_states) != batch_size * beam_size:
+                raise AssertionError(
+                    f"Expected predictor states with batch dim {batch_size * beam_size}, "
+                    f"got {len(per_row_states)} per-row items"
+                )
 
         items: list[MALSDStateItem] = []
         for i in range(batch_size):
-            stream_predictor_state = self.decoder.batch_unsplit_states(
-                per_row_states[i * beam_size : (i + 1) * beam_size]
+            beam_start = i * beam_size
+            beam_end = beam_start + beam_size
+            stream_predictor_state = (
+                tuple(tensor[:, beam_start:beam_end] for tensor in state.predictor_states)
+                if fast_lstm_state
+                else self.decoder.batch_unsplit_states(per_row_states[beam_start:beam_end])
             )
-            fusion_state_list = [fs[i].clone() for fs in state.fusion_states_list] if state.fusion_states_list else []
+            fusion_state_list = [fs[i] for fs in state.fusion_states_list] if state.fusion_states_list else []
             items.append(
                 MALSDStateItem(
                     predictor_state=stream_predictor_state,
-                    predictor_output=state.predictor_outputs[i * beam_size : (i + 1) * beam_size].clone(),
-                    label=state.labels[i].clone(),
-                    decoded_length=state.decoded_lengths[i].clone(),
-                    score=state.scores[i].clone() if state.scores is not None else None,
-                    transcript_hash=(state.transcript_hash[i].clone() if state.transcript_hash is not None else None),
-                    current_lengths_nb=(
-                        state.current_lengths_nb[i].clone() if state.current_lengths_nb is not None else None
-                    ),
+                    predictor_output=state.predictor_outputs[beam_start:beam_end],
+                    label=state.labels[i],
+                    decoded_length=state.decoded_lengths[i],
+                    score=state.scores[i] if state.scores is not None else None,
+                    transcript_hash=(state.transcript_hash[i] if state.transcript_hash is not None else None),
+                    current_lengths_nb=(state.current_lengths_nb[i] if state.current_lengths_nb is not None else None),
                     last_timestamp_lasts=(
-                        state.last_timestamp_lasts[i].clone() if state.last_timestamp_lasts is not None else None
+                        state.last_timestamp_lasts[i] if state.last_timestamp_lasts is not None else None
                     ),
                     transcript_prefix_hash=(
-                        state.transcript_prefix_hash[i].clone() if state.transcript_prefix_hash is not None else None
+                        state.transcript_prefix_hash[i] if state.transcript_prefix_hash is not None else None
                     ),
                     fusion_state_list=fusion_state_list,
                 )
@@ -1586,10 +1609,21 @@ class ModifiedALSDBatchedRNNTComputer(WithOptionalCudaGraphs, ConfidenceMethodMi
             start_item = self._get_state_item_after_sos(device=device)
             state_items = [item if item is not None else start_item for item in state_items]
 
-        per_row_states: list[Any] = []
-        for item in state_items:
-            per_row_states.extend(self.decoder.batch_split_states(item.predictor_state))
-        batched_predictor_state = self.decoder.batch_unsplit_states(per_row_states)
+        fast_lstm_state = all(
+            isinstance(item.predictor_state, tuple)
+            and len(item.predictor_state) == 2
+            and all(isinstance(tensor, torch.Tensor) and tensor.ndim >= 2 for tensor in item.predictor_state)
+            for item in state_items
+        )
+        if fast_lstm_state:
+            batched_predictor_state = tuple(
+                torch.cat([item.predictor_state[state_idx] for item in state_items], dim=1) for state_idx in range(2)
+            )
+        else:
+            per_row_states: list[Any] = []
+            for item in state_items:
+                per_row_states.extend(self.decoder.batch_split_states(item.predictor_state))
+            batched_predictor_state = self.decoder.batch_unsplit_states(per_row_states)
 
         predictor_outputs = torch.cat([item.predictor_output for item in state_items], dim=0)
         labels = torch.stack([item.label for item in state_items], dim=0)

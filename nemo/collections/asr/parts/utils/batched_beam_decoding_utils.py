@@ -1000,8 +1000,8 @@ def export_batched_beam_hyps_to_cpu_lists(
     """Export chunk-local per-beam tokens/timestamps and beam descent map to CPU lists."""
     _, transcripts, timestamps, _, root_ptrs = bbh._export(sort=False)
     root_ptrs_list = root_ptrs.detach().cpu().tolist()
-    transcripts_cpu = transcripts.detach().cpu()
-    timestamps_cpu = timestamps.detach().cpu()
+    transcripts_list = transcripts.detach().cpu().tolist()
+    timestamps_list = timestamps.detach().cpu().tolist()
 
     tokens: list[list[list[int]]] = []
     timestamps_out: list[list[list[int]]] = []
@@ -1009,10 +1009,11 @@ def export_batched_beam_hyps_to_cpu_lists(
         bt: list[list[int]] = []
         bts: list[list[int]] = []
         for k in range(bbh.beam_size):
-            t = transcripts_cpu[b, k]
-            mask = bbh._create_transcripts_mask(t)
-            bt.append(t[mask].tolist())
-            bts.append(timestamps_cpu[b, k][mask].tolist())
+            token_row = transcripts_list[b][k]
+            timestamp_row = timestamps_list[b][k]
+            valid = [idx for idx, token in enumerate(token_row) if token >= 0 and token != bbh.blank_index]
+            bt.append([token_row[idx] for idx in valid])
+            bts.append([timestamp_row[idx] for idx in valid])
         tokens.append(bt)
         timestamps_out.append(bts)
     return tokens, timestamps_out, root_ptrs_list
