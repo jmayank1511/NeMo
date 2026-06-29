@@ -231,6 +231,7 @@ class CacheAwareRNNTInferenceWrapper(CacheAwareASRInferenceWrapper):
         keep_all_outputs: bool,
         drop_left_context: int | None = None,
         valid_out_len: int | None = None,
+        prompt_vectors: Tensor | None = None,
     ) -> tuple[list[Hypothesis], CacheAwareContext]:
         """Cache-aware MALSD encode/decode step for one chunk."""
         if processed_signal.device != self.device:
@@ -266,6 +267,18 @@ class CacheAwareRNNTInferenceWrapper(CacheAwareASRInferenceWrapper):
                 drop_left_context=drop_left_context,
                 valid_out_len=valid_out_len,
             )
+            if prompt_vectors is not None and getattr(self.asr_model, 'concat', False):
+                encoded = encoded.transpose(1, 2)
+                time_steps = encoded.shape[1]
+                if prompt_vectors.dim() == 2:
+                    prompt_vectors = prompt_vectors.unsqueeze(1).expand(-1, time_steps, -1)
+                elif prompt_vectors.shape[1] > time_steps:
+                    prompt_vectors = prompt_vectors[:, :time_steps, :]
+                out_dtype = encoded.dtype
+                encoded = self.asr_model.prompt_kernel(
+                    torch.cat([encoded, prompt_vectors.to(encoded.dtype)], dim=-1)
+                ).to(out_dtype)
+                encoded = encoded.transpose(1, 2)
             encs_dim_last = encoded.transpose(1, 2).contiguous()
 
             best_batched_hyps, batched_state = malsd_computer(

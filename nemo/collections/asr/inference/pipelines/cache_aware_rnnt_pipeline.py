@@ -86,8 +86,6 @@ class CacheAwareRNNTPipeline(BasePipeline):
         self.init_text_processor(cfg, itn_model)
         self.init_nmt_model(nmt_model)
         self.init_decoding_computer()
-        if self.beam_decoder_computer is not None and self.prompt_enabled:
-            raise ValueError("Cache-aware RNNT MALSD beam search does not yet support prompt vectors.")
         super().__init__()
 
     def init_decoding_computer(self) -> None:
@@ -314,6 +312,7 @@ class CacheAwareRNNTPipeline(BasePipeline):
             keep_all_outputs=keep_all_outputs,
             drop_left_context=self.drop_left_context,
             valid_out_len=self.valid_out_len,
+            prompt_vectors=prompt_vectors,
         )
 
     def _prepare_per_stream_biasing(
