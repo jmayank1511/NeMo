@@ -355,7 +355,10 @@ class ModifiedALSDBatchedRNNTComputer(WithOptionalCudaGraphs, ConfidenceMethodMi
         for idx, fusion_model in enumerate(self._all_fusion_models()):
             states = fusion_states_list[idx]
             if idx == biasing_index:
-                model_ids = multi_biasing_ids[:batch_size].reshape(-1)
+                # Keep the dynamic gather index as a normal tensor even when decoding runs
+                # under inference mode. This is a view, so it does not allocate per step.
+                with torch.inference_mode(False):
+                    model_ids = multi_biasing_ids[:batch_size].reshape(-1)
                 scores, states_candidates = fusion_model.advance(states=states, model_ids=model_ids)
                 scores = scores.to(dtype=float_dtype).view(batch_size, self.beam_size, -1)
             else:
@@ -1001,15 +1004,24 @@ class ModifiedALSDBatchedRNNTComputer(WithOptionalCudaGraphs, ConfidenceMethodMi
 
         device = encoder_output_projected.device
         if self.per_stream_biasing_enabled:
-            self.state.multi_biasing_ids = torch.full(
-                [self.state.batch_size, self.beam_size], fill_value=-1, dtype=torch.long, device=device
-            )
+            # Dynamic gather indices need a version counter. The surrounding model setup can
+            # run in inference mode, whose tensors deliberately do not have one.
+            with torch.inference_mode(False):
+                self.state.multi_biasing_ids = torch.full(
+                    [self.state.batch_size, self.beam_size], fill_value=-1, dtype=torch.long, device=device
+                )
 
         if self.has_fusion_models:
             # initialize all fusion models (including multi-biasing as last element)
             self.state.init_fusion_states_list = []
             for fusion_model in self._all_fusion_models():
-                fusion_model.to(device)
+                if fusion_model is self.biasing_multi_model:
+                    # Per-stream models are added and removed after initialization, so every
+                    # shared biasing table must remain mutable after the device transfer.
+                    with torch.inference_mode(False):
+                        fusion_model.to(device)
+                else:
+                    fusion_model.to(device)
                 self.state.init_fusion_states_list.append(
                     fusion_model.get_init_states(batch_size=self.state.batch_size * self.beam_size, bos=True).view(
                         self.state.batch_size, self.beam_size

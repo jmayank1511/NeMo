@@ -497,9 +497,11 @@ class GPUBiasingMultiModel(GPUBiasingMultiModelBase):
         self.num_arcs_extended_total += model.num_arcs_extended
 
         if reallocated:
-            logging.info("Biasing multi-model reallocated memory. Executing reallocation callbacks")
-            for reallocation_callback_fn in self.reallocation_callbacks:
-                reallocation_callback_fn()
+            logging.info("Biasing multi-model reallocated memory")
+        # CUDA graphs capture the active biasing-model layout and fusion state. A model
+        # addition changes that layout even when the backing storage did not reallocate.
+        for reallocation_callback_fn in self.reallocation_callbacks:
+            reallocation_callback_fn()
         return model_id
 
     @staticmethod
@@ -577,6 +579,11 @@ class GPUBiasingMultiModel(GPUBiasingMultiModelBase):
             self.model2arcs_offset - num_arcs,
             out=self.model2arcs_offset,
         )
+
+        # Removing a model compacts the shared state/arc buffers and invalidates any
+        # graph that captured the previous layout.
+        for reallocation_callback_fn in self.reallocation_callbacks:
+            reallocation_callback_fn()
 
     def get_init_states(self, batch_size: int, bos=True) -> torch.Tensor:
         """
